@@ -1,8 +1,5 @@
-import numpy
-
-
 class Experiment:
-    def __init__(self, core):
+    def __init__(self, ):
         self.sim = None
 
     def iterate(self):

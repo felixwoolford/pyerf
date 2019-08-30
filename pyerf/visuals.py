@@ -5,8 +5,8 @@ import numpy as np
 class BaseEnvVisual:
     def __init__(self, widget, axes = None, interactive=True):
 
-        self.canvas = scene.SceneCanvas(keys = "interactive", 
-                                            show=True, parent = widget, bgcolor = 'k')
+        self.canvas = scene.SceneCanvas(keys = "interactive", parent = widget, 
+                                            show=True, bgcolor = 'k')
         if axes is not None:
             self.init_axes()
         else:

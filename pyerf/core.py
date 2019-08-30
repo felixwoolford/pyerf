@@ -1,17 +1,21 @@
-from threading import Thread, Lock, Condition
+# implement interface!
+# might be nice to just set up something so that vispy isn't assumed
+# implement data tab
+# switch the tab hlayout to a grid so that i can have fun layouts
+from threading import Thread, Lock, Condition, Event
 import time
 
 import numpy as np
 
 import gui
-import controller
-import robot
-import environment
-import cli
+# import controller
+# import robot
+# import environment
+# import cli
 
-class Core(Thread):
-    def __init__(self, title="Experiment", mode = 'visual', speed = 1000, fps = 60,):
-        super().__init__()
+class Core:
+    def __init__(self, title="Experiment", mode = 'visual', speed = 1000, fps = 60,
+            framesync = True):
         self.title = title
         self.mode = mode
         self.visual_size = 800 #TODO
@@ -23,25 +27,39 @@ class Core(Thread):
         if self.mode == 'visual':
             self.running = False
             self.paused = False
-            self.pause_cond = Condition(Lock())
+            self.framesync = framesync
+            self.pause_condition = Condition(Lock())
+            self.sync_guiturn = Event()
+            self.sync_guiturn.set()
+            self.sync_expturn = Event()
             self.speed = 1/speed 
-            self.fps = 1000/fps
-            self.gui = gui.GUI(fps) #TODO one day be nice to have an option for others
-              
+            self.fps = 1000//fps
+
+            self.gui = gui.GUI(self, self.fps) 
         #lock to ensure that write interactions only occur in between iterations      
         #TODO this will have to be acquired before any rpyc stuff or else deadlocks?
         self.iteration_lock = Lock()
 
     def run_timed(self):
-        self._initialize()
-        while self.running:
-            with self.pause_cond:
-                while self.paused:
-                    self.pause_cond.wait()
-                self.iteration_lock.acquire()
-                self.experiment.iterate()    
-                self.iteration_lock.release()
-            time.sleep(self.speed)
+        while True:
+            self._initialize()
+            self.running = True
+            while self.running:
+                if self.framesync:
+                    self.sync_expturn.wait()
+                with self.pause_condition:
+                    while self.paused:
+                        self.pause_condition.wait()
+                    self.iteration_lock.acquire()
+                    self.experiment.iterate()    
+                    self.iteration_lock.release()               
+                if self.framesync:
+                    self.sync_expturn.clear()
+                    self.sync_guiturn.set()
+                else:    
+                    time.sleep(self.speed)
+
+
 
     def run_untimed(self):
         self._initialize()
@@ -49,24 +67,26 @@ class Core(Thread):
         
     def _initialize(self):
         np.random.seed(self.seed)
-            
         self.experiment.initialize()
             
     def pause(self):
         if not self.paused:
             self.paused = True
-            self.pause_cond.acquire()
+            self.pause_condition.acquire()
         else:
             self.paused = False
-            self.pause_cond.notify()
-            self.pause_cond.release()
+            self.pause_condition.notify()
+            self.pause_condition.release()
 
     def run(self):
         assert self.experiment != None
+        # assert self.interface != None
+        # self.interface_thread = Thread(target=self.interface.run, daemon=True)
+        # self.interface_thread.start()
         if self.mode == 'visual':
-            assert self.interface != None
-            while True:
-                self.run_timed()
+            self.experiment_thread = Thread(target=self.run_timed, daemon=True)
+            self.experiment_thread.start()
+            self.gui.begin()
         else:
             self.run_untimed()
             
