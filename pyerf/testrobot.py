@@ -172,11 +172,14 @@ class Robot(entity.Entity):
 
 class Model(simulation.Simulation):
     def __init__(self):
+        super().__init__(tracking = False)
         self.arena = Arena()
         self.robot = Robot(self.arena)
         self.robot2 = Robot(self.arena)
         self.robot.partner = self.robot2
         self.robot2.partner = self.robot
+        self.robots.append(self.robot)
+        self.robot.track_variable("s_")
 
     def iterate(self):
         act1 = self.robot.iterate_part1()
@@ -270,11 +273,14 @@ class Viz(visuals.BaseVispy):
     def reset(self):
         self.iterate()
 
-class Plt(visuals.BaseTSVisual):
+class Plt(visuals.BaseTS):
     def __init__(self, *args, size = (800,800)):
         super(Plt, self).__init__(size=size)
-        a = np.linspace(0,1,1000)
-        self.ax.plot(a,a)
+        # a = np.linspace(0,1,1000)
+        # self.ax.plot(a,a)
+
+    # def iterate(self):
+        # self.ax.
 
 c = core.Core(Exp(), fps=10, speed=60, full_size=600)
 # c.gui.add_visual_frame("sim", Viz, c.experiment.simulation, size = (c.full_size,c.full_size), pos = (0,0,6,6))
@@ -290,7 +296,7 @@ c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size = (c.full_size,c.ha
         # (c.full_size,c.half_size), pos = (6,6,3,6))
 c.gui.insert_visual(0, 0, Viz, c.experiment.simulation, bg='r')
 c.gui.swap_visual(0, 0,0)
-c.gui.swap_visual(0,0,1)
+# c.gui.swap_visual(0,0,1)
 c.gui.add_tab("dd", buttons=True, layout="triple1")
 c.gui.insert_visual(1, 0, Viz, c.experiment.simulation, bg='r')
 c.gui.insert_visual(1, 1, Viz, c.experiment.simulation, bg='r')

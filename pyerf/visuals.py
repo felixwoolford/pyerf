@@ -1,5 +1,11 @@
+from itertools import cycle
+
 from vispy import scene
+
 from matplotlib.figure import Figure
+from matplotlib.animation import TimedAnimation
+from matplotlib.lines import Line2D
+
 import numpy as np
 
 # Base class for general model visualizations
@@ -76,7 +82,7 @@ class BaseMPL:
 
     def __init__(self, size=(800, 800), dpi=100):
         x, y = size
-        self.fig = Figure((x / dpi, y / dpi), dpi)
+        self.fig = Figure((x/dpi, y/dpi), dpi)
         self.ax = self.fig.add_subplot(111)
 
     # update on custom call and/or on tab switch - used for static plots
@@ -92,18 +98,44 @@ class BaseMPL:
 class BaseTS:
     frontend = "matplotlib"
 
-    def __init__(self, var=None, xrange = None, static = True, size=(800, 800), dpi=100):
+    def __init__(self, var=None, xrange=None, static=True, size=(800, 800), dpi=100):
         x, y = size
-        self.fig = Figure((x / dpi, y / dpi), dpi)
+        self.fig = Figure((x/dpi, y/dpi), dpi)
         self.ax = self.fig.add_subplot(111)
         self._tracked_vars = []
+        self.lines = []
         if var is not None:
             self.add_var(var)
         self.xrange = xrange
         self.static = static
+        self.ax.set_xlabel("time")
+        # self.ax.set_ylabel('x')
+        self.colors = cycle(
+            [
+                "xkcd: coral",
+                "xkcd: gold",
+                "xkcd: lightblue",
+                "xkcd: fuchsia",
+                "xkcd: lightgreen",
+                "xkcd: ivory",
+                "xkcd: silver",
+            ]
+        )
 
+        self.bg_cache = self.fig.canvas.copy_from_bbox(self.ax.bbox)
+    
     def add_var(self, var):
         self._tracked_vars.append(var)
+        line = Line2D([], [], color=next(self.colors), linewidth=3)
+        self.lines.append(line)
+        self.ax.add_line(line)
+
+    def update_blit(self, artists):
+        self.fig.canvas.restore_region(self.bg_cache)
+        for a in artists:
+            a.axes.draw_artist(a)
+
+        self.ax.figure.canvas.blit(self.ax.bbox)
 
     # override if neccesary
     # update on custom call and/or on tab switch - used for static plots
@@ -122,4 +154,8 @@ class BaseTS:
         if self.static:
             pass
         else:
-            pass # TODO
+            fig.canvas.draw()
+
+            artists = func(f, *fargs)
+            self.update_blit(artists)
+            fig.canvas.start_event_loop(interval)
