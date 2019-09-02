@@ -1,25 +1,38 @@
 class Simulation:
-    def __init__(self):
+    def __init__(self, environment = None, robots = [], tracking = True):
         self.tracked_variables = {}
-        self.environment = None
-        self.robots = []
+        self.environment = environment
+        self.robots = robots
+        self.i = 0
+        self.tracking = tracking
 
     # This should be overridden for more complex sims
-    def initialize(self):              
-        self.initialize_robots()
+    def initialize(self):
+        self.i = 0
+        self.initialize_entities()
 
-    def initialize_robots(self):
+    def initialize_entities(self):
         self.environment.initialize()
         for robot in self.robots:
-            robot.initialize
+            robot.initialize()
 
-    def update_track_hist(self):
+    def update_track_hist(self, i):
+        self.environment._update_track_hist(i)
+        for robot in self.robots:
+            robot._update_track_hist(i)
         for var, hist in self.tracked_variables.items():
-            hist.append(vars(self)[var])
+            hist[0].append(i)
+            hist[1].append(vars(self)[var])
 
     def track_variable(self, var):
         v = vars(self)[var]
-        self.tracked_variables[v] = []
+        self.tracked_variables[v] = [[],[]]
 
     def untrack_variable(self, var):
         del self.tracked_variables[vars(self)[var]]
+
+    # iterate generic background stuff
+    def _iterate_bookkeeping(self):
+        if self.tracking:
+            self.i += 1
+            self.update_track_hist(self.i)

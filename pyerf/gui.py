@@ -9,7 +9,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
 class GUIWindow(pqtw.QMainWindow):
-    #All custom signals are handled by GUIWindow
+    # all custom signals are handled by GUIWindow
     fps_signal = pqtc.pyqtSignal(int)
     reset_signal = pqtc.pyqtSignal(bool)
     add_tab_signal = pqtc.pyqtSignal(str, bool, str)
@@ -190,11 +190,6 @@ class VisualTab(pqtw.QWidget):
             self.new_visual_frame(None, size = (self.mf.core.full_size,
                 self.mf.core.half_size), pos = (0,6,3,6))
             self.new_visual_frame(None, size = (self.mf.core.full_size, self.mf.core.half_size), pos = (3,6,3,6))
-        # elif layout == "quad1":
-            # self.new_visual_frame(None, size = (), pos = ())
-            # self.new_visual_frame(None, size = (), pos = ())
-            # self.new_visual_frame(None, size = (), pos = ())
-            # self.new_visual_frame(None, size = (), pos = ())
 
 class VisualFrame(pqtw.QFrame):
     def __init__(self, parent, class_, *args, **kwargs):
@@ -207,7 +202,7 @@ class VisualFrame(pqtw.QFrame):
         self.visuals = []
         if class_ is not None:
             self.visuals.append(class_(self, *args, **kwargs))
-            self._aw()
+            self.add_widget()
         self.show()
 
     def insert_visual(self, class_, *args, **kwargs):
@@ -215,7 +210,7 @@ class VisualFrame(pqtw.QFrame):
         if len(self.visuals) > 1:
             self.box.itemAt(self.index).widget().hide()
         self.index = len(self.visuals) - 1
-        self._aw()
+        self.add_widget()
 
     def swap_visual(self, index):
         self.box.itemAt(self.index).widget().hide()
@@ -230,7 +225,7 @@ class VisualFrame(pqtw.QFrame):
         if self.visuals:
             self.visuals[self.index].reset()
 
-    def _aw(self):
+    def add_widget(self):
         if self.visuals[self.index].frontend == "vispy":
             self.box.addWidget(self.visuals[self.index].canvas.native)
         elif self.visuals[self.index].frontend == "matplotlib":
@@ -259,7 +254,7 @@ class GUI:
 
     def add_visual_frame(self, tab, class_, *args, **kwargs):
         if threading.current_thread().name == "cli":
-            print("This function must not be called from CLI")
+            print("Adding frames from CLI unsupported, add a new tab instead")
         else:
             self._window.mf.tabs[tab].new_visual_frame(class_, *args, **kwargs)
             self._window.mf.qtab.adjustSize()
@@ -268,7 +263,7 @@ class GUI:
     def add_tab(self, name = "tab", buttons = True, layout = None):
         if threading.current_thread().name == "cli":
             if layout is None:
-                print("Must assign standard layout from cli")
+                print("Must assign a standard layout from CLI")
             else:
                 self._window.add_tab_signal.emit(name, buttons, layout)
         else:        

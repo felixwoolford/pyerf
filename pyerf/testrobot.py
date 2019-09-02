@@ -4,9 +4,8 @@ from dashnet.network import Bundle as Bundle
 
 import core
 import experiment
-import robot
+import entity
 import simulation
-import environment
 import visuals
 
 
@@ -54,7 +53,7 @@ class Parameters:
         self.p_req = 0.0
 
 
-class Arena(environment.Environment):
+class Arena(entity.Entity):
     def __init__(self, n=8, r=3):
         super().__init__()
         self.size = n * r
@@ -63,7 +62,7 @@ class Arena(environment.Environment):
         self.r = r
 
 
-class Robot(robot.Robot):
+class Robot(entity.Entity):
     def __init__(self, world, pos=np.array([3, 3]), bearing=0, hist=None):
         super().__init__()
         self.SO = SensorimotorOptions()
@@ -207,7 +206,7 @@ class Exp(experiment.Experiment):
         self.simulation.initialize()
 
 
-class Viz(visuals.BaseEnvVisual):
+class Viz(visuals.BaseVispy):
     def __init__(self, widget, sim, bg=(1,1,1,0)):
         super().__init__(widget)
         self.sim = sim
