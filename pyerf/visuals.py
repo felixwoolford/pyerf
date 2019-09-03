@@ -1,10 +1,11 @@
 from itertools import cycle
-
+import time
 from vispy import scene
 
 from matplotlib.figure import Figure
-from matplotlib.animation import TimedAnimation
+from matplotlib.animation import Animation
 from matplotlib.lines import Line2D
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 import numpy as np
 
@@ -95,67 +96,106 @@ class BaseMPL:
 
 # TODO maybe set up a nice dynamic plotting feature for this too
 # Base class for easily setting up time series plots
-class BaseTS:
+class BaseTS(Animation):
     frontend = "matplotlib"
 
-    def __init__(self, var=None, xrange=None, static=True, size=(800, 800), dpi=100):
-        x, y = size
+    def __init__(self, vars_=[], xrange=None, timer = None, figsize=(800, 800), dpi=100):
+        x, y = figsize
         self.fig = Figure((x/dpi, y/dpi), dpi)
+        self.canvas = FigureCanvas(self.fig)
         self.ax = self.fig.add_subplot(111)
         self._tracked_vars = []
         self.lines = []
-        if var is not None:
+        if timer is not None:
+            self.static = False
+        else:
+            self.static = True
+        self.colors = [
+            "xkcd: coral",
+            "xkcd: gold",
+            "xkcd: lightblue",
+            "xkcd: fuchsia",
+            "xkcd: lightgreen",
+            "xkcd: ivory",
+            "xkcd: silver",
+        ]
+        
+        for var in vars_:
             self.add_var(var)
         self.xrange = xrange
-        self.static = static
+        self.ax.set_xlim(xrange)
         self.ax.set_xlabel("time")
+        self.t = time.time()
         # self.ax.set_ylabel('x')
-        self.colors = cycle(
-            [
-                "xkcd: coral",
-                "xkcd: gold",
-                "xkcd: lightblue",
-                "xkcd: fuchsia",
-                "xkcd: lightgreen",
-                "xkcd: ivory",
-                "xkcd: silver",
-            ]
-        )
-
-        self.bg_cache = self.fig.canvas.copy_from_bbox(self.ax.bbox)
+        if not self.static:
+            self.timer = timer
+            super().__init__(self.fig, event_source = self, blit=True)
     
     def add_var(self, var):
         self._tracked_vars.append(var)
-        line = Line2D([], [], color=next(self.colors), linewidth=3)
+        line = Line2D([], [], color='b', linewidth=3)
+        if self.static:
+            line.set_animated(True)
         self.lines.append(line)
         self.ax.add_line(line)
-
-    def update_blit(self, artists):
-        self.fig.canvas.restore_region(self.bg_cache)
-        for a in artists:
-            a.axes.draw_artist(a)
-
-        self.ax.figure.canvas.blit(self.ax.bbox)
-
+    
     # override if neccesary
     # update on custom call and/or on tab switch - used for static plots
     def update_triggered(self):
+        self.min = 0
+        self.max = 1
         if self.static:
+            for i in range(len(self.lines)):
+                lam = self._tracked_vars[i]
+                x = lam[0](lam[1]).tracked_variables[lam[2]][0]
+                y = lam[0](lam[1]).tracked_variables[lam[2]][1]
+                self.lines[i] = Line2D(x, y)
+                self.ax.add_line(self.lines[i])
+                # self.ax.draw_artist(self.lines[i])
+                if x[-1] > self.max:
+                    self.max = x[-1]
             if self.xrange is not None:
                 self.ax.set_xlim(self.xrange)
-            for var in self._tracked_vars:
-                self.ax.plot(var[0][:], var[1][:])
+            else:
+                self.ax.set_xlim((self.min, self.max))
+            self.canvas.draw()
+            # self.canvas.flush_events()
         else:
             pass
 
-    # override if necessary
-    # update every frame - used for dynamic plots
+    # Not needed in this class
     def iterate(self):
-        if self.static:
-            pass
-        else:
-            fig.canvas.draw()
+        pass
 
-            artists = func(f, *fargs)
-            self.update_blit(artists)
-            fig.canvas.start_event_loop(interval)
+    #Overriding animation functions
+    def new_frame_seq(self):
+        self._drawn_artists = [] # TODO
+        for i in range(len(self.lines)):
+            self.lines[i].set_data([], [])
+            self._drawn_artists.append(self.lines[i]) # TODO
+
+    def _step(self, *args):
+        self._draw_next_frame(None, self._blit)
+        return True
+
+    def _draw_frame(self, framedata):
+        self._drawn_artists = []
+        for i in range(len(self.lines)):
+            lam = self._tracked_vars[i]
+            x = lam[0](lam[1]).tracked_variables[lam[2]][0]
+            y = lam[0](lam[1]).tracked_variables[lam[2]][1]
+            self.lines[i].set_data(x, y)
+            self._drawn_artists.append(self.lines[i])
+
+    # HACK functions to workaround the animation wanting a different timer
+    def stop(self):
+        self.timer.stop()
+
+    def start(self):
+        self.timer.start()
+
+    def remove_callback(self, *args):
+        self.timer.timeout.disconnect(self._step)
+
+    def add_callback(self, *args):
+        self.timer.timeout.connect(self._step)

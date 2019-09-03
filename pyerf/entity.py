@@ -12,8 +12,8 @@ class Entity:
             hist[1].append(vars(self)[var])
 
     def track_variable(self, var):
-        v = vars(self)[var]
-        self.tracked_variables[v] = [[],[]]
+        self.tracked_variables[var] = [[],[]]
+        self.update_track_hist(0) # HACK
 
     def untrack_variable(self, var):
-        del self.tracked_variables[vars(self)[var]]
+        del self.tracked_variables[var]

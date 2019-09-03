@@ -5,7 +5,6 @@ import PyQt5.QtWidgets as pqtw
 import PyQt5.QtCore as pqtc
 from PyQt5.QtGui import QSurfaceFormat
 import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
 class GUIWindow(pqtw.QMainWindow):
@@ -32,10 +31,10 @@ class GUIWindow(pqtw.QMainWindow):
         self.swap_visual_signal.connect(self.swap_visual)
 
     def swap_visual(self, tab, w_index, v_index):
-        self.mf.tabs[tab].visuals[w_index].swap_visual(v_index)
+        self.mf.tabs[tab].frames[w_index].swap_visual(v_index)
 
     def insert_visual(self, tab, index, class_, *args, **kwargs):
-        self.mf.tabs[tab].visuals[index].insert_visual(class_, *args, **kwargs)
+        self.mf.tabs[tab].frames[index].insert_visual(class_, *args, **kwargs)
     
     
 class MainFrame(pqtw.QFrame):
@@ -75,6 +74,7 @@ class MainFrame(pqtw.QFrame):
         )
 
         self.qtab = pqtw.QTabWidget(self)
+        self.qtab.currentChanged.connect(self.tab_changed)
 
         self.timer = pqtc.QTimer(self)
         self.timer.setInterval(fps)
@@ -88,6 +88,13 @@ class MainFrame(pqtw.QFrame):
         self.tabs.append(new_tab)
         self.qtab.addTab(new_tab, name)
         self.qtab.adjustSize()    
+
+    def tab_changed(self, tab):
+        for frame in self.tabs[tab].frames:
+            try:
+                frame.visuals[frame.index].update_triggered()
+            except (AttributeError, IndexError):
+                pass
 
     def update(self):
         if self.core.framesync:
@@ -112,15 +119,15 @@ class MainFrame(pqtw.QFrame):
     def reset(self, reseed=False):
         self.core.reset(reseed=reseed)
         for tab in self.tabs:
-            for visual in tab.visuals:
-                visual.reset()
+            for frame in tab.frames:
+                frame.reset()
 
 class VisualTab(pqtw.QWidget):
     def __init__(self, mf, buttons, layout):
         super().__init__()
         self.mf = mf
         self.buttons = buttons
-        self.visuals = []
+        self.frames = []
         self.init_ui()
         if layout is not None:
             self.layout_frames(layout)
@@ -154,13 +161,13 @@ class VisualTab(pqtw.QWidget):
         return button_layout
 
     def update(self):
-        for visual in self.visuals:
-            visual.update()
+        for frame in self.frames:
+            frame.update()
 
     def new_visual_frame(self, class_, *args, **kwargs):
         pos = kwargs.pop("pos", (0, 0, 1, 1))
         new_visual_frame = VisualFrame(self, class_, *args, **kwargs)
-        self.visuals.append(new_visual_frame)
+        self.frames.append(new_visual_frame)
         self.g_layout.addWidget(new_visual_frame, *pos)
         self.adjustSize()
 
@@ -197,7 +204,6 @@ class VisualFrame(pqtw.QFrame):
         self.box = pqtw.QHBoxLayout(self)
         self.index = 0
         size = kwargs.pop("size", (parent.mf.core.full_size, parent.mf.core.full_size))
-        self.visual_canvases = {}
         self.setMaximumSize(*size)
         self.visuals = []
         if class_ is not None:
@@ -229,8 +235,7 @@ class VisualFrame(pqtw.QFrame):
         if self.visuals[self.index].frontend == "vispy":
             self.box.addWidget(self.visuals[self.index].canvas.native)
         elif self.visuals[self.index].frontend == "matplotlib":
-            self.visual_canvases[self.index] = FigureCanvas(self.visuals[self.index].fig)
-            self.box.addWidget(self.visual_canvases[self.index])
+            self.box.addWidget(self.visuals[self.index].canvas)
         else:
             raise NameError("Only vispy and matplotlib currently supported")
 
@@ -273,13 +278,16 @@ class GUI:
         if threading.current_thread().name == "cli":
             self._window.insert_visual_signal.emit(tab, index, class_, args, kwargs)
         else:
-            self._window.mf.tabs[tab].visuals[index].insert_visual(class_, *args, **kwargs)
+            self._window.mf.tabs[tab].frames[index].insert_visual(class_, *args, **kwargs)
 
     def swap_visual(self, tab, w_index, v_index):
         if threading.current_thread().name == "cli":
             self._window.swap_visual_signal.emit(tab, w_index, v_index)
         else:    
-            self._window.mf.tabs[tab].visuals[w_index].swap_visual(v_index)
+            self._window.mf.tabs[tab].frames[w_index].swap_visual(v_index)
+
+    def get_timer(self):
+        return self._window.mf.timer
 
     def _begin(self):
         self._app.exec_()

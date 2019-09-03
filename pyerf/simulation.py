@@ -1,8 +1,8 @@
 class Simulation:
-    def __init__(self, environment = None, robots = [], tracking = True):
+    def __init__(self, environment = None, tracking = True):
         self.tracked_variables = {}
         self.environment = environment
-        self.robots = robots
+        self.robots = []
         self.i = 0
         self.tracking = tracking
 
@@ -17,9 +17,9 @@ class Simulation:
             robot.initialize()
 
     def update_track_hist(self, i):
-        self.environment._update_track_hist(i)
+        self.environment.update_track_hist(i)
         for robot in self.robots:
-            robot._update_track_hist(i)
+            robot.update_track_hist(i)
         for var, hist in self.tracked_variables.items():
             hist[0].append(i)
             hist[1].append(vars(self)[var])

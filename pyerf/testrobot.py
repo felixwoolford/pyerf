@@ -172,8 +172,9 @@ class Robot(entity.Entity):
 
 class Model(simulation.Simulation):
     def __init__(self):
-        super().__init__(tracking = False)
+        super().__init__(tracking = True)
         self.arena = Arena()
+        self.environment = self.arena
         self.robot = Robot(self.arena)
         self.robot2 = Robot(self.arena)
         self.robot.partner = self.robot2
@@ -192,6 +193,7 @@ class Model(simulation.Simulation):
         self.robot2.s_word = word
 
     def initialize(self, pos=None):
+        # self.robot.untrack_variable("s_")
         self.__init__()
 
 
@@ -208,10 +210,11 @@ class Exp(experiment.Experiment):
     def initialize(self):
         self.simulation.initialize()
 
-
+import time 
 class Viz(visuals.BaseVispy):
     def __init__(self, widget, sim, bg=(1,1,1,0)):
         super().__init__(widget)
+        self.t = time.time()
         self.sim = sim
         self.view.camera.set_range((0, self.sim.arena.size), (0, self.sim.arena.size))
         self.view.camera.aspect = 1
@@ -246,6 +249,8 @@ class Viz(visuals.BaseVispy):
         )
 
     def iterate(self):
+        # print(time.time()-self.t)
+        self.t = time.time()
 
         r1f = self.sim.robot.adjust_vector_by_bearing(np.array([0.0, 0.5]))
         r2f = self.sim.robot2.adjust_vector_by_bearing(np.array([0.0, 0.5]))
@@ -266,16 +271,16 @@ class Viz(visuals.BaseVispy):
         )
 
         self.grid.set_data(self.sim.arena.grid.T)
-        self.canvas.update()
+        # self.canvas.update()
         # print("hi")
-        self.canvas.render()
+        # self.canvas.render()
 
     def reset(self):
         self.iterate()
 
 class Plt(visuals.BaseTS):
-    def __init__(self, *args, size = (800,800)):
-        super(Plt, self).__init__(size=size)
+    def __init__(self, *args, figsize = (800,800), **kwargs):
+        super(Plt, self).__init__(figsize=figsize, **kwargs)
         # a = np.linspace(0,1,1000)
         # self.ax.plot(a,a)
 
@@ -285,15 +290,16 @@ class Plt(visuals.BaseTS):
 c = core.Core(Exp(), fps=10, speed=60, full_size=600)
 # c.gui.add_visual_frame("sim", Viz, c.experiment.simulation, size = (c.full_size,c.full_size), pos = (0,0,6,6))
 c.gui.add_tab("sim")
-c.gui.add_visual_frame(0, Plt, size = (c.full_size, c.full_size), pos = (0,0,6,6))
+v = [(lambda x: x.robots[0], c.experiment.simulation, "s_")]
+c.gui.add_visual_frame(0, Plt, vars_ = v, size = (c.full_size, c.full_size), pos = (0,0,6,6))
 c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size = (c.full_size,c.half_size), pos = (0,6,3,6))
 c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size = (c.full_size,c.half_size), pos = (3,6,3,6))
-# c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size =
-        # (c.twothird_size,c.half_size), pos = (6,0,3,4))
-# c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size =
-        # (c.third_size,c.half_size), pos = (6,4,3,2))
-# c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size =
-        # (c.full_size,c.half_size), pos = (6,6,3,6))
+c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size =
+        (c.twothird_size,c.half_size), pos = (6,0,3,4))
+c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size =
+        (c.third_size,c.half_size), pos = (6,4,3,2))
+c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size =
+        (c.full_size,c.half_size), pos = (6,6,3,6))
 c.gui.insert_visual(0, 0, Viz, c.experiment.simulation, bg='r')
 c.gui.swap_visual(0, 0,0)
 # c.gui.swap_visual(0,0,1)
