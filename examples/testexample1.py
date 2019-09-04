@@ -1,12 +1,7 @@
 from vispy import scene, color
 import numpy as np
 from dashnet.network import Bundle as Bundle
-
-import core
-import experiment
-import entity
-import simulation
-import visuals
+import pyerf
 
 
 class SensorimotorOptions:
@@ -20,7 +15,7 @@ class SensorimotorOptions:
             "MF": lambda x: x._move(np.array([0, 1])),
             "MR": lambda x: x._move(np.array([1, 0])),
             "MB": lambda x: x._move(np.array([0, -1])),
-            # 'TL': lambda x: x._turn(-np.pi/2), ## These intuitively feel backwards to me but they are right
+            
             # 'TR': lambda x: x._turn(np.pi/2),
         }
         self.ACTION_KEYS = list(self.ACTIONS.keys())
@@ -53,7 +48,7 @@ class Parameters:
         self.p_req = 0.0
 
 
-class Arena(entity.Entity):
+class Arena(pyerf.Entity):
     def __init__(self, n=8, r=3):
         super().__init__()
         self.size = n * r
@@ -62,7 +57,7 @@ class Arena(entity.Entity):
         self.r = r
 
 
-class Robot(entity.Entity):
+class Robot(pyerf.Entity):
     def __init__(self, world, pos=np.array([3, 3]), bearing=0, hist=None):
         super().__init__()
         self.SO = SensorimotorOptions()
@@ -170,7 +165,7 @@ class Robot(entity.Entity):
         self.bsin = int(np.sin(self.bearing))
 
 
-class Model(simulation.Simulation):
+class Model(pyerf.Simulation):
     def __init__(self):
         super().__init__(tracking = True)
         self.arena = Arena()
@@ -198,7 +193,7 @@ class Model(simulation.Simulation):
         self.__init__()
 
 
-class Exp(experiment.Experiment):
+class Exp(pyerf.Experiment):
     def __init__(self):
         super().__init__()
         self.simulation = Model()
@@ -212,7 +207,7 @@ class Exp(experiment.Experiment):
         self.simulation.initialize()
 
 import time 
-class Viz(visuals.BaseVispy):
+class Viz(pyerf.BaseVispy):
     def __init__(self, widget, sim, bg=(1,1,1,0)):
         super().__init__(widget)
         self.t = time.time()
@@ -279,7 +274,7 @@ class Viz(visuals.BaseVispy):
     def reset(self):
         self.iterate()
 
-class Plt(visuals.BaseTS):
+class Plt(pyerf.BaseTS):
     def __init__(self, *args, figsize = (800,800), **kwargs):
         super(Plt, self).__init__(figsize=figsize, **kwargs)
         # a = np.linspace(0,1,1000)
@@ -288,11 +283,11 @@ class Plt(visuals.BaseTS):
     # def iterate(self):
         # self.ax.
 
-class PltA(visuals.BaseVispyTS):
+class PltA(pyerf.BaseVispyTS):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-c = core.Core(Exp(), fps=10, speed=60, full_size=600)
+c = pyerf.Core(Exp(), fps=10, speed=60, full_size=600)
 # c.gui.add_visual_frame("sim", Viz, c.experiment.simulation, size = (c.full_size,c.full_size), pos = (0,0,6,6))
 c.gui.add_tab("sim")
 v = [
