@@ -5,7 +5,7 @@ class Entity:
     def initialize(self):              
         raise NotImplementedError
 
-    # generally should not be called directly, unless from an overriding method with eg. a filter
+    # generally should not be called directly
     def update_track_hist(self, i):
         for var, hist in self.tracked_variables.items():
             hist[0].append(i)

@@ -1,13 +1,10 @@
-# fix up base visuals
-# set up package
-# set tab switch to trigger custom updates
 from threading import Thread, Lock, Condition, Event
 import time
 
 import numpy as np
 
-from gui import GUI
-from interface import CLI
+from .gui import GUI
+from .interface import CLI
 
 
 class Core:
@@ -31,6 +28,7 @@ class Core:
             self._speed = 1 / kwargs.get("speed", 1000)
             self._fps = 1000 // kwargs.get("fps", 60)
             self.gui = GUI(self, self._fps)
+            self._gui_reset_trigger = False
 
         # lock to ensure that write interactions only occur in between iterations
         self._iteration_lock = Lock()
@@ -39,6 +37,7 @@ class Core:
         while True:
             self._initialize()
             self._is_reset = False
+            self._gui_reset_trigger = True
             # Condition is set false when reset is called, continuing the outer loop
             while not self._is_reset:
                 if self.framesync:

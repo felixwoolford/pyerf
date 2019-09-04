@@ -91,12 +91,15 @@ class MainFrame(pqtw.QFrame):
 
     def tab_changed(self, tab):
         for frame in self.tabs[tab].frames:
-            try:
+            if len(frame.visuals) > 0 and frame.visuals[frame.index].frontend == "matplotlib":
                 frame.visuals[frame.index].update_triggered()
-            except (AttributeError, IndexError):
-                pass
 
     def update(self):
+        if self.core._gui_reset_trigger:
+            for tab in self.tabs:
+                for frame in tab.frames:
+                    frame.reset()
+            self.core._gui_reset_trigger = False
         if self.core.framesync:
             self.timer.stop()
             self.core._sync_guiturn.wait()
@@ -118,9 +121,6 @@ class MainFrame(pqtw.QFrame):
 
     def reset(self, reseed=False):
         self.core.reset(reseed=reseed)
-        for tab in self.tabs:
-            for frame in tab.frames:
-                frame.reset()
 
 class VisualTab(pqtw.QWidget):
     def __init__(self, mf, buttons, layout):
@@ -288,6 +288,10 @@ class GUI:
 
     def get_timer(self):
         return self._window.mf.timer
+
+    def trigger_update(self):
+        mf = self._window.mf
+        mf.tab_changed(mf.qtab.currentIndex())
 
     def _begin(self):
         self._app.exec_()
