@@ -181,22 +181,30 @@ class VisualTab(pqtw.QWidget):
         if layout == "square":
             self.new_visual_frame(None, size = (self.mf.core.full_size,
                 self.mf.core.full_size), pos = (0,0,6,6))
+            self.mf.qtab.setMinimumSize(self.mf.core.full_size, self.mf.core.full_size)
         elif layout == "pair":
             self.new_visual_frame(None, size = (self.mf.core.full_size,
                 self.mf.core.full_size), pos = (0,0,6,6))
             self.new_visual_frame(None, size = (self.mf.core.full_size,
                 self.mf.core.full_size), pos = (0,6,6,6))
+            self.mf.qtab.setMinimumSize(self.mf.core.full_size*2, self.mf.core.full_size)
         elif layout == "longpair":
             self.new_visual_frame(None, size = (self.mf.core.full_size*2,
                 self.mf.core.half_size), pos = (0, 0, 3, 12))
             self.new_visual_frame(None, size = (self.mf.core.full_size*2,
                 self.mf.core.half_size), pos = (3, 0, 3, 12))
+            self.mf.qtab.setMinimumSize(self.mf.core.full_size*2, self.mf.core.full_size)
         elif layout == "triple1":
             self.new_visual_frame(None, size = (self.mf.core.full_size,
                 self.mf.core.full_size), pos = (0,0,6,6))
             self.new_visual_frame(None, size = (self.mf.core.full_size,
                 self.mf.core.half_size), pos = (0,6,3,6))
-            self.new_visual_frame(None, size = (self.mf.core.full_size, self.mf.core.half_size), pos = (3,6,3,6))
+            self.new_visual_frame(None, size = (self.mf.core.full_size, 
+                self.mf.core.half_size), pos = (3,6,3,6))
+            self.mf.qtab.setMinimumSize(self.mf.core.full_size*2, self.mf.core.full_size)
+        else:
+            raise NameError("Valid layout names: 'square', 'pair', 'longpair', 'triple1'")
+        self.mf.setMinimumSize(self.mf.qtab.size())
 
 class VisualFrame(pqtw.QFrame):
     def __init__(self, parent, class_, *args, **kwargs):
@@ -217,6 +225,7 @@ class VisualFrame(pqtw.QFrame):
             self.box.itemAt(self.index).widget().hide()
         self.index = len(self.visuals) - 1
         self.add_widget()
+        self.adjustSize()
 
     def swap_visual(self, index):
         self.box.itemAt(self.index).widget().hide()

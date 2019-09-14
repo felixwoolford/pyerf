@@ -12,11 +12,11 @@ class Core:
         self.title = kwargs.get("title", "Experiment")
         self._mode = kwargs.get("mode", "visual")
         self.set_size(kwargs.get("full_size", 800))
-        self.seed = np.random.randint(2**32)
+        self.seed = kwargs.get("seed", np.random.randint(2**32))
         np.random.seed(self.seed)
 
         self.experiment = experiment
-        self._interface = CLI(self)
+        self.interface = CLI(self)
         if self._mode == "visual":
             self._is_reset = False
             self._paused = False
@@ -95,7 +95,7 @@ class Core:
 
     def run(self):
         assert self.experiment != None
-        self.interface_thread = Thread(target=self._interface._run, name="cli", daemon=True)
+        self.interface_thread = Thread(target=self.interface._run, name="cli", daemon=True)
         self.interface_thread.start()
         if self._mode == "visual":
             self.experiment_thread = Thread(target=self._run_timed, daemon=True)

@@ -7,12 +7,12 @@ class CLI:
     
     # set word in between experiment iterations, should make behaviour more predictable
     def safe_set(self, target, var, val):
-        with self.core.iteration_lock:
+        with self.core._iteration_lock:
             vars(target)[var] = val
     
     # call function in between experiment iterations, should make behaviour more predictable
     def safe(self, func):
-        with self.core.iteration_lock:
+        with self.core._iteration_lock:
             func()
 
     def _run(self):
