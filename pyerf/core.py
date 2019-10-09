@@ -14,6 +14,7 @@ class Core:
         self.set_size(kwargs.get("full_size", 800))
         self.seed = kwargs.get("seed", np.random.randint(2**32))
         np.random.seed(self.seed)
+        self._kill = False
 
         self.experiment = experiment
         self.interface = CLI(self)
@@ -35,6 +36,8 @@ class Core:
 
     def _run_timed(self):
         while True:
+            if self._kill:
+                return
             self._initialize()
             self._is_reset = False
             self._gui_reset_trigger = True

@@ -1,3 +1,4 @@
+import os
 import IPython
 
 
@@ -22,3 +23,9 @@ class CLI:
         e = self.core.experiment
 
         IPython.terminal.embed.embed()
+
+    def q(self):
+        self.core.gui.quit()
+        self.core._kill = True
+        self.core.reset()
+        os._exit(1)
