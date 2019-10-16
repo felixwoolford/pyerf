@@ -84,7 +84,7 @@ class Core:
         self._is_reset = True
 
     def speed(self, speed):
-        self.core.speed = 1/speed
+        self._speed = 1/speed
 
     def pause(self):
         if not self._paused:

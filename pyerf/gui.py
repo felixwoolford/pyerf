@@ -20,7 +20,7 @@ class GUIWindow(pqtw.QMainWindow):
         self.mf = MainFrame(self, core, fps)
         self.setCentralWidget(self.mf)
         self.mf.setMinimumSize(self.mf.qtab.size())
-        self.move(200, 0)
+        # self.move(200, 0)
         self.setWindowTitle(core.title)
         self.adjustSize()
         self.show()
