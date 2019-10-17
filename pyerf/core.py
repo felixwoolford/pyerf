@@ -11,7 +11,6 @@ class Core:
     def __init__(self, experiment, **kwargs):
         self.title = kwargs.get("title", "Experiment")
         self._mode = kwargs.get("mode", "visual")
-        self.set_size(kwargs.get("full_size", 800))
         self.seed = kwargs.get("seed", np.random.randint(2**32))
         np.random.seed(self.seed)
         self._kill = False
@@ -63,12 +62,6 @@ class Core:
                 else:
                     time.sleep(self._speed)
 
-    def set_size(self, size):
-        self.full_size = size
-        self.half_size = size//2 - 4
-        self.third_size = size//3 - 5
-        self.twothird_size = 2*size//3 - 2
-
     def _run_untimed(self):
         self._initialize()
         self.experiment.run()
@@ -80,7 +73,7 @@ class Core:
     def reset(self, reseed=False):
         if reseed:
             self.seed = np.random.randint(2**32)
-        # Causes continuation of inner loop of _run_timed
+        # Causes continuation of outer loop of _run_timed
         self._is_reset = True
 
     def speed(self, speed):

@@ -290,11 +290,10 @@ class PltA(pyerf.BaseVispyTS):
 c = pyerf.Core(Exp(), fps=10, speed=60, full_size=600)
 # c.gui.add_visual_frame("sim", Viz, c.experiment.simulation, size = (c.full_size,c.full_size), pos = (0,0,6,6))
 # gui.add_tab("sim")
-v = [
-    (lambda x: x.robots[0], c.experiment.simulation, "s_"),
+v = [ (lambda x: x.robots[0], c.experiment.simulation, "s_"),]
     # (lambda x: x.robots[0], c.experiment.simulation, "pos", 0),
     
-    ]
+    
 # c.gui.add_visual_frame(0, Plt, vars_ = v, update_r = 10, size = (c.full_size, c.full_size), pos = (0,0,6,6))
 # c.gui.add_visual_frame(0, PltA, vars_ = v, range_=((0,1000),(0,1)),  size = (c.full_size, c.full_size), pos = (0,0,6,6))
 # c.gui.add_visual_frame(0, Viz, c.experiment.simulation, size = (c.full_size,c.half_size), pos = (0,6,3,6))
@@ -310,6 +309,16 @@ v = [
 # # c.gui.swap_visual(0,0,1)
 c.gui.add_tab("dd", buttons=True, layout="triple1")
 c.gui.insert_visual(0, 0, Viz, c.experiment.simulation, bg='r')
+c.gui.insert_visual(0, 1, Viz, c.experiment.simulation, bg='r')
+c.gui.insert_visual(0, 2, Viz, c.experiment.simulation, bg='r')
+c.gui.insert_visual(0, 2, PltA, vars_ = v, range_=((0,1000),(0,1)))
+c.gui.add_slave()
+# import time
+# time.sleep(1)
+# c.gui.insert_visual(0, 2, PltA, vars_ = v, range_=((0,1000),(0,1)))
+c.gui.insert_visual(-1, -1, Plt, vars_ = v, update_r = 10, window = 1)
+c.gui.insert_visual(-1, -1, PltA, vars_ = v, range_=((0,1000),(0,1)), window = 1)
+# c.gui.insert_visual(0, 1, Plt, vars_ = v, update_r = 10)
 # c.gui.insert_visual(1, 1, Viz, c.experiment.simulation, bg='r')
 # c.gui.add_tab("dd2", buttons=True, layout="longpair")
 # c.gui.insert_visual(2, 0, Viz, c.experiment.simulation, bg='r')
