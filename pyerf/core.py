@@ -94,6 +94,7 @@ class Core:
         self.interface_thread = Thread(target=self.interface._run, name="cli", daemon=True)
         self.interface_thread.start()
         if self._mode == "visual":
+            self.gui.show_windows()
             self.experiment_thread = Thread(target=self._run_timed, daemon=True)
             self.experiment_thread.start()
             # Start up the GUI app - end of the line for the main thread

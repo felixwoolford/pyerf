@@ -56,8 +56,6 @@ class GUIWindow(pqtw.QMainWindow):
         self.insert_visual_signal.connect(self.insert_visual) 
         self.swap_visual_signal.connect(self.swap_visual)
         self.add_slave_signal.connect(self.add_slave)
-        self.adjustSize()
-        self.show()
 
     def swap_visual(self, tab, w_index, v_index, window):
         if window == 0:
@@ -92,7 +90,7 @@ class MainFrame(pqtw.QFrame):
         super().__init__(parent)
         self.core = core
         self.setAutoFillBackground(True)
-        # self.setStyleSheet(STYLESHEET)
+        self.setStyleSheet(STYLESHEET)
         layout = pqtw.QGridLayout()
         self.qtab = pqtw.QTabWidget(self)
         layout.addWidget(self.qtab, 0,0,0,0)
@@ -115,7 +113,6 @@ class MainFrame(pqtw.QFrame):
         window.frame = SlaveFrame(window, self)
         window.setWindowTitle(name)
         window.setCentralWidget(window.frame)
-        window.show()
         
     def add_tab(self, name, buttons, layout):
         new_tab = VisualTab(self, self, buttons, layout)
@@ -164,7 +161,7 @@ class MainFrame(pqtw.QFrame):
 class SlaveFrame(pqtw.QFrame):
     def __init__(self, parent_window, mf):
         super().__init__(parent_window)
-        # self.setStyleSheet(STYLESHEET)
+        self.setStyleSheet(STYLESHEET)
         self.mf = mf
         self.layout = pqtw.QGridLayout()
         self.qtab = pqtw.QTabWidget(self)
@@ -355,6 +352,11 @@ class GUI:
     def reset(self, reseed=False):
         self._window.reset_signal.emit(reseed)
 
+    def show_windows(self):
+        self._window.show()
+        for w in self._window.mf.slave_windows:
+            w.show()
+
     def add_visual_frame(self, tab, class_, *args, **kwargs):
         if threading.current_thread().name == "cli":
             print("Adding frames from CLI unsupported, add a new tab instead")
@@ -388,7 +390,6 @@ class GUI:
                     w.tabs[tab].frames[index].insert_visual(class_, *args, **kwargs)
                 else:
                     w.new_visual_frame(class_, *args, **kwargs)
-        self._window.adjustSize()
 
     def swap_visual(self, tab, w_index, v_index, window = 0):
         if threading.current_thread().name == "cli":
