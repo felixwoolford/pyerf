@@ -16,6 +16,7 @@ class Core:
         self._kill = False
 
         self.experiment = experiment
+        self._initialize()
         self.interface = CLI(self)
         if self._mode == "visual":
             self._is_reset = False
@@ -37,7 +38,6 @@ class Core:
         while True:
             if self._kill:
                 return
-            self._initialize()
             self._is_reset = False
             self._gui_reset_trigger = True
             # Condition is set false when reset is called, continuing the outer loop
@@ -61,9 +61,9 @@ class Core:
                 # If unsynced use own timer 
                 else:
                     time.sleep(self._speed)
+            self._initialize()
 
     def _run_untimed(self):
-        self._initialize()
         self.experiment.run()
 
     def _initialize(self):
@@ -91,8 +91,9 @@ class Core:
 
     def run(self):
         assert self.experiment != None
-        self.interface_thread = Thread(target=self.interface._run, name="cli", daemon=True)
-        self.interface_thread.start()
+        if self._mode != "optimal":
+            self.interface_thread = Thread(target=self.interface._run, name="cli", daemon=True)
+            self.interface_thread.start()
         if self._mode == "visual":
             self.gui.show_windows()
             self.experiment_thread = Thread(target=self._run_timed, daemon=True)

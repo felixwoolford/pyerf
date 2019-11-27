@@ -1,7 +1,8 @@
 class Experiment:
-    def __init__(self, simulation = None):
+    def __init__(self, simulation = None, trial_length = -1):
         self.simulation = simulation
-
+        self.trial_length = trial_length
+    
     def _iterate(self):
         self.iterate()
         self.simulation._iterate_bookkeeping()
@@ -9,12 +10,13 @@ class Experiment:
     def _initialize(self):
         self.initialize()
     
-    # if called directly, consider implementing elements from _iterate
+    # if overridden and called directly, consider implementing elements from _iterate
     def iterate(self):
-        raise NotImplementedError
+        self.simulation.iterate()
 
     def run(self):
-        raise NotImplementedError
-    
+        for _ in range(self.trial_length):
+            self.iterate()
+
     def initialize(self):
-        raise NotImplementedError
+        self.simulation.__init__()

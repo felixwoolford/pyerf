@@ -19,13 +19,15 @@ class CLI:
     def _run(self):
         i = self
         c = self.core
-        g = self.core.gui
+        if c._mode == "visual":
+            g = self.core.gui
         e = self.core.experiment
 
         IPython.terminal.embed.embed()
 
     def q(self):
-        self.core.gui.quit()
+        if self.core._mode == "visual":
+            self.core.gui.quit()
         self.core._kill = True
         self.core.reset()
         os._exit(1)
