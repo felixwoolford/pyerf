@@ -1,6 +1,6 @@
 import os
 import IPython
-
+import asyncio
 
 class CLI:
     def __init__(self, core):
@@ -23,6 +23,7 @@ class CLI:
             g = self.core.gui
         e = self.core.experiment
 
+        asyncio.set_event_loop(asyncio.new_event_loop())
         IPython.terminal.embed.embed()
 
     def q(self):

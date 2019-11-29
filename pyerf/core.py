@@ -16,9 +16,9 @@ class Core:
         self._kill = False
 
         self.experiment = experiment
-        self._initialize()
         self.interface = CLI(self)
         if self._mode == "visual":
+            self._initialize()
             self._is_reset = False
             self._paused = False
             self.framesync = kwargs.get("framesync", True)
