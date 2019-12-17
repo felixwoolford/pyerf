@@ -1,6 +1,7 @@
+# IPython has royally fucked my interface, I will need to comeback at some point
+# to address this. In the meantime i'll fork IPython back to where it was working
 from threading import Thread, Lock, Condition, Event
 import time
-
 import numpy as np
 
 from .gui import GUI
