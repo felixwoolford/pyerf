@@ -1,7 +1,7 @@
 import os
 from IPython import terminal
 import asyncio
-from prompt_toolkit.patch_stdout import patch_stdout
+# from prompt_toolkit.patch_stdout import patch_stdout
 
 # def enable_gui(self, gui=None):
     # if gui and (gui != 'inline') :
@@ -20,16 +20,16 @@ from prompt_toolkit.patch_stdout import patch_stdout
 # patch for TerminalInteractiveShell to allow stdout to show through
 # one day this may need correcting but it's good for now
 # Maybe I could also inject something to fix that SQLite shit
-def prompt_for_code(self):
-    if self.rl_next_input:
-        default = self.rl_next_input
-        self.rl_next_input = None
-    else:
-        default = ''
+# def prompt_for_code(self):
+    # if self.rl_next_input:
+        # default = self.rl_next_input
+        # self.rl_next_input = None
+    # else:
+        # default = ''
 
-    with patch_stdout(raw=True):
-        text = self.pt_app.prompt( default=default, **self._extra_prompt_options())
-    return text
+    # with patch_stdout(raw=True):
+        # text = self.pt_app.prompt( default=default, **self._extra_prompt_options())
+    # return text
 
 class CLI:
     def __init__(self, core):
@@ -53,7 +53,7 @@ class CLI:
         e = self.core.experiment
 
         # inject my hacked solution to prevent a new eventloop being created in terminal
-        terminal.interactiveshell.TerminalInteractiveShell.prompt_for_code = prompt_for_code
+        # terminal.interactiveshell.TerminalInteractiveShell.prompt_for_code = prompt_for_code
         # terminal.interactiveshell.TerminalInteractiveShell.enable_gui = enable_gui
         # asyncio.set_event_loop(self.loop)
         asyncio.set_event_loop(asyncio.new_event_loop())
