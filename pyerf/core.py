@@ -12,22 +12,27 @@ class Core:
     def __init__(self, experiment, **kwargs):
         self.title = kwargs.get("title", "Experiment")
         self._mode = kwargs.get("mode", "visual")
+        mode_ops = ["visual", "optimal", "safe", "unsafe"]
+        if self._mode not in mode_ops:
+            print("mode should be in {}".format(mode_ops))
+            self._mode = "safe"
         self.seed = kwargs.get("seed", np.random.randint(2**32))
         np.random.seed(self.seed)
         self._kill = False
 
         self.experiment = experiment
         self.interface = CLI(self)
-        if self._mode == "visual":
+        if self._mode in ["visual", "safe"]:
             self._initialize()
             self._is_reset = False
             self._paused = False
-            self.framesync = kwargs.get("framesync", True)
             self._pause_condition = Condition(Lock())
+            self.framesync = kwargs.get("framesync", False)
+            self._speed = 1 / kwargs.get("speed", 1000)
+        if self._mode in ["visual"]:
             self._sync_guiturn = Event()
             self._sync_guiturn.set()
             self._sync_expturn = Event()
-            self._speed = 1 / kwargs.get("speed", 1000)
             self._fps = 1000 // kwargs.get("fps", 60)
             self.gui = GUI(self, self._fps)
             self._gui_reset_trigger = False
@@ -37,8 +42,6 @@ class Core:
 
     def _run_timed(self):
         while True:
-            if self._kill:
-                return
             self._is_reset = False
             self._gui_reset_trigger = True
             # Condition is set false when reset is called, continuing the outer loop
@@ -62,7 +65,10 @@ class Core:
                 # If unsynced use own timer 
                 else:
                     time.sleep(self._speed)
-            self._initialize()
+            if self._kill:
+                return
+            else: 
+                self._initialize()
 
     def _run_untimed(self):
         self.experiment.run()
@@ -101,5 +107,9 @@ class Core:
             self.experiment_thread.start()
             # Start up the GUI app - end of the line for the main thread
             self.gui._begin()
+        elif self._mode == "safe":
+            self._run_timed()
+            while not self._kill:
+                time.sleep(1)
         else:
             self._run_untimed()
