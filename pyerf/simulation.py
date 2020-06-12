@@ -1,5 +1,5 @@
 class Simulation:
-    def __init__(self, environment = None, tracking = True):
+    def __init__(self, environment = None, tracking = False):
         self.tracked_variables = {}
         self.environment = environment
         self.robots = []
@@ -12,12 +12,14 @@ class Simulation:
         self.initialize_entities()
 
     def initialize_entities(self):
-        self.environment.initialize()
+        if self.environment is not None:
+            self.environment.initialize()
         for robot in self.robots:
             robot.initialize()
 
     def update_track_hist(self, i):
-        self.environment.update_track_hist(i)
+        if self.environment is not None:
+            self.environment.update_track_hist(i)
         for robot in self.robots:
             robot.update_track_hist(i)
         for var, hist in self.tracked_variables.items():

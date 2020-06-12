@@ -1,5 +1,3 @@
-# IPython has royally fucked my interface, I will need to comeback at some point
-# to address this. In the meantime i'll fork IPython back to where it was working
 from threading import Thread, Lock, Condition, Event
 import time
 import numpy as np
@@ -21,7 +19,8 @@ class Core:
         self._kill = False
 
         self.experiment = experiment
-        self.interface = CLI(self)
+        if self._mode != "optimal":
+            self.interface = CLI(self)
         if self._mode in ["visual", "safe"]:
             self._initialize()
             self._is_reset = False
@@ -29,6 +28,8 @@ class Core:
             self._pause_condition = Condition(Lock())
             self.framesync = kwargs.get("framesync", False)
             self._speed = 1 / kwargs.get("speed", 1000)
+            # lock to ensure that write interactions only occur in between iterations
+            self._iteration_lock = Lock()
         if self._mode in ["visual"]:
             self._sync_guiturn = Event()
             self._sync_guiturn.set()
@@ -37,8 +38,6 @@ class Core:
             self.gui = GUI(self, self._fps)
             self._gui_reset_trigger = False
 
-        # lock to ensure that write interactions only occur in between iterations
-        self._iteration_lock = Lock()
 
     def _run_timed(self):
         while True:

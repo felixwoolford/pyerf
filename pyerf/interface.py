@@ -21,6 +21,8 @@ class CLI:
         c = self.core
         if c._mode == "visual":
             g = self.core.gui
+            p = g.pause
+            r = g.reset
         e = self.core.experiment
 
         asyncio.set_event_loop(asyncio.new_event_loop())

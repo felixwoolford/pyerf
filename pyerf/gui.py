@@ -37,6 +37,7 @@ STYLESHEET = """             QFrame{background-color: black; color: white}
 
 class GUIWindow(pqtw.QMainWindow):
     # all custom signals are handled by GUIWindow
+    pause_signal = pqtc.pyqtSignal()
     fps_signal = pqtc.pyqtSignal(int)
     reset_signal = pqtc.pyqtSignal(bool)
     add_tab_signal = pqtc.pyqtSignal(str, bool, str)
@@ -56,6 +57,7 @@ class GUIWindow(pqtw.QMainWindow):
         self.insert_visual_signal.connect(self.insert_visual) 
         self.swap_visual_signal.connect(self.swap_visual)
         self.add_slave_signal.connect(self.add_slave)
+        self.pause_signal.connect(self.mf.pause)
 
     def swap_visual(self, tab, w_index, v_index, window):
         if window == 0:
@@ -406,6 +408,9 @@ class GUI:
 
     def get_timer(self):
         return self._window.mf.timer
+
+    def pause(self):
+        self._window.pause_signal.emit()
 
     def trigger_update(self):
         mf = self._window.mf
