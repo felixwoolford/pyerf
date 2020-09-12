@@ -28,6 +28,7 @@ class Core:
             self._pause_condition = Condition(Lock())
             self.framesync = kwargs.get("framesync", False)
             self._speed = 1 / kwargs.get("speed", 1000)
+            self.time = time.time()
             # lock to ensure that write interactions only occur in between iterations
             self._iteration_lock = Lock()
         if self._mode in ["visual"]:
@@ -63,7 +64,11 @@ class Core:
                     self._sync_guiturn.set()
                 # If unsynced use own timer 
                 else:
-                    time.sleep(self._speed)
+                    time_diff = time.time() - self.time
+                    # If the code is running slower than the timer, don't force the wait
+                    if time_diff < self._speed:
+                        time.sleep(self._speed - time_diff)
+                    self.time = time.time()
             if self._kill:
                 return
             else: 
@@ -96,7 +101,7 @@ class Core:
         return self._paused
 
     def run(self):
-        assert self.experiment != None
+        assert self.experiment is not None
         if self._mode != "optimal":
             self.interface_thread = Thread(target=self.interface._run, name="cli", daemon=True)
             self.interface_thread.start()
