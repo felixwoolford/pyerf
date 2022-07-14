@@ -38,6 +38,7 @@ class BaseVispy:
         self.range_ = range_
         if range_ is not None:
             self.view.camera.set_range(*range_)
+            self.default_range = range_
         self.canvas.events.key_press.connect(self.key_pressed)  
 
     # override this for key events

@@ -139,15 +139,14 @@ class MainFrame(pqtw.QFrame):
             for slave in self.slave_windows:
                 slave.frame.reset()
             self.core._gui_reset_trigger = False
-        if self.core.framesync:
-            self.timer.stop()
-            self.core._sync_guiturn.wait()
-            self.timer.start()
-            loop_updates()
-            self.core._sync_guiturn.clear()
-            self.core._sync_expturn.set()
-        else:
-            loop_updates()
+
+        self.core._sync_expturn.clear()
+        self.timer.stop()
+        self.core._sync_guiturn.wait()
+        self.core._sync_guiturn.clear()
+        self.timer.start()
+        loop_updates()
+        self.core._sync_expturn.set()
 
     def pause(self):
         paused = self.core.pause()
@@ -286,11 +285,30 @@ class VisualTab(pqtw.QWidget):
             self.new_visual_frame(None, pos = (0,0,6,12))
             self.new_visual_frame(None, pos = (6,0,3,6))
             self.new_visual_frame(None, pos = (6,6,3,6))
+        elif layout == "quad":
+            self.new_visual_frame(None, pos = (0,0,6,6))
+            self.new_visual_frame(None, pos = (0,6,6,6))
+            self.new_visual_frame(None, pos = (6,0,6,6))
+            self.new_visual_frame(None, pos = (6,6,6,6))
+        elif layout == "ten":
+            self.new_visual_frame(None, pos = (0,0,2,5))
+            self.new_visual_frame(None, pos = (0,5,2,5))
+            self.new_visual_frame(None, pos = (2,0,2,5))
+            self.new_visual_frame(None, pos = (2,5,2,5))
+            self.new_visual_frame(None, pos = (4,0,2,5))
+            self.new_visual_frame(None, pos = (4,5,2,5))
+            self.new_visual_frame(None, pos = (6,0,2,5))
+            self.new_visual_frame(None, pos = (6,5,2,5))
+            self.new_visual_frame(None, pos = (8,0,2,5))
+            self.new_visual_frame(None, pos = (8,5,2,5))
+
         else:
             names = [   'square', 
                         'pair', 
                         'pairh', 
                         'triple1',
+                        'quad',
+                        'ten',
                     ]
             raise NameError("Valid layout names: {0}".format(names))
 

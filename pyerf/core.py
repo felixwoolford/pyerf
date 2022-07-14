@@ -17,6 +17,8 @@ class Core:
         self.seed = kwargs.get("seed", np.random.randint(2**32))
         np.random.seed(self.seed)
         self._kill = False
+        self._unsynced_wait = False
+        self._unsynced_wait_ready = False
 
         self.experiment = experiment
         if self._mode != "optimal":
@@ -46,12 +48,12 @@ class Core:
             self._gui_reset_trigger = True
             # Condition is set false when reset is called, continuing the outer loop
             while not self._is_reset:
-                if self.framesync:
-                    # Ensure condition is cleared even if framesync cancelled
-                    clearsync = True
+                if self.framesync or not self._sync_expturn.is_set():
+                    self._sync_guiturn.set()
                     self._sync_expturn.wait()
-                else:
-                    clearsync = False
+                    if self.framesync:
+                        self._sync_expturn.clear()
+
                 # Handle pause from interfaces
                 with self._pause_condition:
                     while self._paused:
@@ -59,11 +61,8 @@ class Core:
                     with self._iteration_lock:
                         self.experiment._iterate()
 
-                if clearsync:
-                    self._sync_expturn.clear()
-                    self._sync_guiturn.set()
                 # If unsynced use own timer 
-                else:
+                if not self.framesync:
                     time_diff = time.time() - self.time
                     # If the code is running slower than the timer, don't force the wait
                     if time_diff < self._speed:
