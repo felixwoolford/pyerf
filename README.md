@@ -10,4 +10,4 @@ It provides:
   - A framework for easily tracking agent and environmental variables
   
 
-I haven't time right now to make any sort of proper documentation for this but if you are interested in using this or copying out the more interesting parts like the asynchronous cli please let me know and I will be happy to assist!
+This is pretty much for my own use and I haven't time right now to make any sort of proper documentation, but if you are interested in using this or copying out the more interesting parts like the asynchronous cli please let me know and I will be happy to assist!
